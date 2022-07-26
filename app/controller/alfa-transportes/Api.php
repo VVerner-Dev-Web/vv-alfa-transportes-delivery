@@ -72,7 +72,7 @@ class API
 
     private function getCubicMeters( int $weight ): float
     {
-        return $weight / 100;
+        return $weight / 1000;
     }
 
     private function fetchEstimate(): string

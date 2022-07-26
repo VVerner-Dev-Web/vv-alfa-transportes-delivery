@@ -132,7 +132,7 @@ class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
    
             if ($qty > 0 && $product->needs_shipping() && $weight) :
                $response->price += $values['line_subtotal'];
-               $response->weight += $weight;
+               $response->weight += $qty * $weight;
             endif;
         endforeach;
 

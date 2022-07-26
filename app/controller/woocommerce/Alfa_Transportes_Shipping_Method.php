@@ -1,53 +1,39 @@
 <?php defined('ABSPATH') || exit('No direct script access allowed');
 
-
 class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
 {
-    public function __construct()
+    public function __construct( $instance_id = 0 )
     {
-        $this->id                  = 'alfa-transportes-shipping';
-        $this->method_title        = 'Alfa Transporte';
-        $this->method_description  = 'Entrega pela Alfa Transportes';
-        $this->availability        = 'including';
-        $this->countries           = ['BR'];
-        
+        $this->id                   = 'alfa-transportes-shipping';
+		$this->instance_id          = absint( $instance_id );
+        $this->method_title         = 'Alfa Transporte';
+        $this->method_description   = 'Entrega pela Alfa Transportes';
+        $this->availability         = 'including';
+        $this->countries            = ['BR'];
+
         $this->init();
         
-        $this->enabled             = isset($this->settings['enabled']) ? $this->settings['enabled'] : 'yes';
-        $this->title               = isset($this->settings['title'])   ? $this->settings['title']   : 'Alfa Transportes';
-        $this->ShowingForecast     = $this->settings['show_estimation'] === 'yes';
-        $this->isLogEnabled        = $this->settings['debug'] === 'yes';
-        $this->logger              = $this->isLogEnabled ? wc_get_logger() : null;
+        $this->enabled              = isset($this->settings['enabled']) ? $this->settings['enabled'] : 'yes';
+        $this->title                = isset($this->settings['title'])   ? $this->settings['title']   : 'Alfa Transportes';
+        $this->showingForecast      = $this->settings['show_estimation'] === 'yes';
+        $this->isLogEnabled         = $this->settings['debug'] === 'yes';
+        $this->logger               = $this->isLogEnabled ? wc_get_logger() : null;
+
+        $this->api_token            = $this->settings['token'];
     }
 
 
     public function init()
     {
-        
         $this->init_form_fields();
         $this->init_settings();
        
         add_action('woocommerce_update_options_shipping_' . $this->id, [$this, 'process_admin_options']);
-        
-       
     }
 
     public function init_form_fields()
     {
         $this->form_fields = [
-            'cpf_cnpj'           => [
-                'type'     => 'text',
-                'class'    => 'regular',
-                'title'    => 'CPF / CNPJ do remetente'
-            ],
-            'origin'             => [
-                'type'     => 'select',
-                'class'    => 'wc-enhanced-select',
-                'title'    => 'Origem do envio',
-                'options'  => [
-                    'canela' => 'Canela'
-                ]
-            ],
             'token'             => [
                 'type'     => 'text',
                 'title'    => 'Token da API',
@@ -128,21 +114,7 @@ class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
         $this->log('Finalizando requisição');
 
     }
-    public function getSenderID(): string
-    {
-       return $this->settings['cpf_cnpj'] ? preg_replace('/\D/', '', $this->settings['cpf_cnpj']) : '';
-    }
- 
-    public function getApiToken(): string
-    {
-       return $this->settings['token'] ? trim($this->settings['token']) : '';
-    }
- 
-    public function getOriginCity(): string
-    {
-       return $this->settings['origin'] ? trim($this->settings['origin']) : '';
-    }
- 
+
     // private function getApi(): \Aciulog\API
     // {
     //    return new Aciulog\API($this);

@@ -5,12 +5,11 @@ add_filter('woocommerce_shipping_methods', function( array $methods = [] ) {
     return $methods;
 });
 
-add_filter('wocommerce_after_shipping_rate', function( WC_Shipping_Rate $shipping ) {
+add_filter('woocommerce_after_shipping_rate', function( WC_Shipping_Rate $shipping ) {
     $meta_data = $shipping->get_meta_data();
-    $total     = isset($meta_data['delivery_forecast'] ) ? (int) $meta_data['delivery_forecast'] : 0;
+    $forecast  = isset($meta_data['delivery_forecast'] ) ? $meta_data['delivery_forecast'] : 0;
 
-    if ($total) :
-        $message = $total . _n('dia para entrega', 'dias para entrega', $total);
-        echo '<p><small>'. $message . '</small><p>';
+    if ($forecast) :
+        echo '<p><small>'. $forecast . '</small><p>';
     endif;
 });

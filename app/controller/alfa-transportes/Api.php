@@ -3,6 +3,8 @@
 namespace VVerner\AlfaTransportesDelivery;
 
 use SimpleXMLElement;
+use stdClass;
+use WP_Error;
 
 defined('ABSPATH') || exit('No direct script access allowed');
 
@@ -14,6 +16,7 @@ class API
     private int $contentWeight;
 
     private const URL = 'http://www.alfatransportes.com.br/ws/cotacao';
+    private const SUCCESS_STATUS = 1;
 
     public function __construct( string $token )
     {
@@ -27,7 +30,39 @@ class API
         $this->contentWeight    = (int) round($contentWeight);
 
         $response = $this->fetchEstimate();
-        $response = new SimpleXMLElement( $response );
+        $errors   = $this->traitErrors( $response );
+
+        return $errors ? $errors : $this->parseEstimate( $response );
+    }
+
+    private function traitErrors( string $estimateFromApi ): ?WP_Error
+    {
+        if (!$estimateFromApi) :
+            return new WP_Error(-1, 'Retorno vazio da API');
+        endif;
+
+        $xml        = new SimpleXMLElement( $estimateFromApi );
+        $statusCol  = (array) $xml->cot->cotStatus;
+        $statusCode = (int) $statusCol['@attributes']['stsCd'];
+
+        if ($statusCode !== self::SUCCESS_STATUS) : 
+            return new WP_Error($statusCode, $statusCol[0]);
+        endif;
+
+        return null;
+    }
+
+    private function parseEstimate( string $estimateFromApi ): stdClass
+    {
+        $xml        = new SimpleXMLElement( $estimateFromApi );
+        $cotArray = (array) $xml->cot;
+
+        $estimate = new stdClass();
+        $estimate->id       = $cotArray['@attributes']['id'];
+        $estimate->price    = (float) $xml->cot->vlr->cotVlrTot;
+        $estimate->forecast = (string) $xml->cot->ent->entPrev;
+
+        return $estimate;
     }
 
     private function getClientType( string $type ): int
@@ -40,11 +75,11 @@ class API
         return $weight / 100;
     }
 
-    private function fetchEstimate()
+    private function fetchEstimate(): string
     {
         $url      = add_query_arg( $this->getArgs(), self::URL );
         $request  = wp_remote_post( $url );
-        $response = wp_remote_retrieve_body( $request );
+        $response = is_wp_error($request) ? '' : wp_remote_retrieve_body( $request );
         return $response;
     }
 

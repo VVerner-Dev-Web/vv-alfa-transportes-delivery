@@ -2,8 +2,6 @@
 
 namespace VVerner\AlfaTransportesDelivery;
 
-use \WC_Shipping_Rate;
-
 defined('ABSPATH') || exit('No direct script access allowed');
 
 class App

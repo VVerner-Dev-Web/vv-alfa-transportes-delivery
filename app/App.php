@@ -59,3 +59,5 @@ class App
               </div>';
     }
 }
+
+App::init();

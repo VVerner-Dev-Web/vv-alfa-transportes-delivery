@@ -14,5 +14,3 @@
 define('VVATD_FILE', __FILE__);
 define('VVATD_APP', __DIR__ . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR);
 require_once VVATD_APP . 'App.php';
-
-VVerner\AlfaTransportesDelivery\App::init();

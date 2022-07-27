@@ -15,6 +15,7 @@ class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
         $this->enabled              = isset($this->settings['enabled']) ? $this->settings['enabled'] : 'yes';
         $this->title                = isset($this->settings['title'])   ? $this->settings['title']   : 'Alfa Transportes';
         $this->isShowingForecast    = $this->settings['show_estimation'] === 'yes';
+        $this->minWeight            = (int) $this->settings['min_weight'];
         $this->isLogEnabled         = $this->settings['debug'] === 'yes';
         $this->logger               = $this->isLogEnabled ? wc_get_logger() : null;
 
@@ -35,6 +36,11 @@ class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
             'token'             => [
                 'type'     => 'text',
                 'title'    => 'Token da API',
+            ],
+            'min_weight'        => [
+                'type'     => 'number',
+                'title'    => 'Peso mínimo para entrega',
+                'default'  => 0
             ],
             'show_estimation'   => [
                 'type'     => 'select',
@@ -86,6 +92,11 @@ class Alfa_Transportes_Shipping_Method extends WC_Shipping_Method
         endif;
 
         $packageData = $this->getPackageData( $_package );
+
+        if ($this->minWeight > $packageData->weight) :
+            $this->log('Peso do carrinho inferior ao configurado');
+            return;
+        endif;
 
         $estimate = $api->getEstimate(
             $zip,
